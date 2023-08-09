@@ -1,0 +1,6 @@
+applicationType: default
+defaultPackage: com.boldare
+testFramework: kotest
+sourceLanguage: kotlin
+buildTool: gradle
+features: [app-name, gradle, http-client-test, kotest, kotlin, kotlin-application, ksp, logback, micronaut-aot, micronaut-build, netty-server, properties, readme, serialization-jackson, shade]
