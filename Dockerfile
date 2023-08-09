@@ -1,16 +1,24 @@
-FROM gradle:jdk17-jammy AS build
-COPY --chown=gradle:gradle . /home/gradle/src
-WORKDIR /home/gradle/src
-RUN gradle build --no-daemon
-FROM eclipse-temurin:17-jdk-jammy
+# Use the official OpenJDK image as the base image
+FROM adoptopenjdk/openjdk17:alpine
+
+# Set the working directory in the container
+WORKDIR /app
+
+# Install Gradle
+RUN apk update && apk add --no-cache wget unzip
+RUN wget -q https://services.gradle.org/distributions/gradle-7.2-bin.zip && \
+    unzip -q gradle-7.2-bin.zip && \
+    rm gradle-7.2-bin.zip
+ENV PATH="/app/gradle-7.2/bin:${PATH}"
+
+# Copy the Spring Boot application files to the container
+COPY . .
+
+# Build the Spring Boot application with Gradle
+RUN gradle clean build
+
+# Expose the port that the Spring Boot app will run on
 EXPOSE 8080
-RUN mkdir /app
-COPY --from=build /home/gradle/src/build/libs/*.jar /app/spring-boot-application.jar
-ENTRYPOINT [
-    "java",
-    "-XX:+UnlockExperimentalVMOptions",
-    "-XX:+UseCGroupMemoryLimitForHeap",
-    "-Djava.security.egd=file:/dev/./urandom",
-    "-jar",
-    "/app/spring-boot-application.jar"
-]
+
+# Run the Spring Boot application
+CMD ["java", "-jar", "build/libs/your-spring-boot-app.jar"]
