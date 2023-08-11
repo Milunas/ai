@@ -1,6 +1,8 @@
 Thumbs.db
 .DS_Store
 .gradle
+build/
+!build/libs/ai-0.1-all.jar
 target/
 out/
 .micronaut/
