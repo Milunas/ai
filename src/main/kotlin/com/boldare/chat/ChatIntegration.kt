@@ -45,16 +45,18 @@ class ChatIntegration(
 ) {
     private val token = "Bearer $aiPocKey"
     private val api = "https://api.openai.com/v1"
-    private val model = "gpt-3.5-turbo"
+    //private val model = "gpt-3.5-turbo"
+    private val model = "gpt-4"
 
     private val chats = mutableMapOf<String, List<ChatMessage>>()
 
     fun openChatAndSave(): ChatResponse {
+        val systemMessage = ChatMessage("system", systemMessage)
         val firstMessage = ChatMessage("user", promptMessage)
-        val request = ChatRequest(model, listOf(firstMessage))
+        val request = ChatRequest(model, listOf(systemMessage, firstMessage))
         val response = openChat(request)
         chats.putIfAbsent(response.id, listOfNotNull(
-                firstMessage, response.choices.firstOrNull()?.message))
+                systemMessage, firstMessage, response.choices.firstOrNull()?.message))
         return response
     }
 
@@ -137,21 +139,20 @@ class Chat(private val chatIntegration: ChatIntegration) {
             chatIntegration.nextMessageAndSave(id, content)
 }
 
-// gtp 4
-// system message - expert
+// + gtp 4
+// + system message - expert
 // user message
 // ux/ui - show user data & weather, add reason at the end oparte na
 
 // description from weather API, temperature from weather API
-val promptMessage = "Today is clear sky. Temperature is 295.86 K." +
-        // from user data storage
-        "I have gas boiler as space heating type and gas boiler as water heating type. " +
-        "Can you give me some tips for optimal energy usage? " +
-        "There is json data that you should use. " +
-        "Give me most accurate tip from provided data. " +
-        "If some tip don't fit don't show it. " +
+val systemMessage = "Today is clear sky. Temperature is 295.86 K." +
+        "Act as a expert in optimal energy usage in smart home industry." +
+        "You have json data with tips for optimal energy usage." +
+        "The users will ask you about tips of optimal energy usage and provide their home equipment data." +
+        "Return most accurate tip from the json data." +
+        "If you don't have any matching tip, admit it in apologizing message." +
         "Start sentence with: Here is tip for you: " +
-        "At the end add reason why this tip was provided. " +
+        "At the end add reason why this tip was provided based on weather and user equipment, but don't mention tip name." +
         // from tips storage
         "Data: ```{\n" +
         "                \"generic-tips-thermostat\": {\n" +
@@ -331,3 +332,9 @@ val promptMessage = "Today is clear sky. Temperature is 295.86 K." +
         "                    \"content\": \"Lower the temperature of your warm water boiler for just-as-clean dishes and showers.\"\n" +
         "                }\n" +
         "            }```"
+
+val promptMessage =
+        // from user data storage
+        "I have gas boiler as space heating type and gas boiler as water heating type. " +
+        "Can you give me some tips for optimal energy usage? " +
+        "Give me most accurate tip from provided data. "
