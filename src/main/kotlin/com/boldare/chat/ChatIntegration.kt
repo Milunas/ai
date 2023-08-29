@@ -45,19 +45,19 @@ class ChatIntegration(
 ) {
     private val token = "Bearer $aiPocKey"
     private val api = "https://api.openai.com/v1"
-    //private val model = "gpt-3.5-turbo"
     private val model = "gpt-4"
 
     private val chats = mutableMapOf<String, List<ChatMessage>>()
 
-    fun openChatAndSave(): ChatResponse {
+    fun openChatAndSave(): ChatCustomResponse {
         val systemMessage = ChatMessage("system", systemMessage)
         val firstMessage = ChatMessage("user", promptMessage)
         val request = ChatRequest(model, listOf(systemMessage, firstMessage))
         val response = openChat(request)
+        val responseMessage = response.choices.firstOrNull()?.message
         chats.putIfAbsent(response.id, listOfNotNull(
-                systemMessage, firstMessage, response.choices.firstOrNull()?.message))
-        return response
+                systemMessage, firstMessage, responseMessage))
+        return ChatCustomResponse(response, listOfNotNull(systemMessage, firstMessage, responseMessage))
     }
 
     fun nextMessageAndSave(chatId: String, content: String): ChatResponse? {
@@ -111,6 +111,24 @@ data class ChatResponse(
         val choices: List<ChatChoice>,
         val usage: ChatUsage,
 )
+
+@Serdeable
+@Introspected
+data class ChatCustomResponse(
+        val id: String,
+        val model: String,
+        val choices: List<ChatChoice>,
+        val usage: ChatUsage,
+        val allMessages: List<ChatMessage>
+) {
+    constructor(chatResponse: ChatResponse, allMessages: List<ChatMessage>) : this(
+            chatResponse.id,
+            chatResponse.model,
+            chatResponse.choices,
+            chatResponse.usage,
+            allMessages
+    )
+}
 
 @Serdeable
 @Introspected
